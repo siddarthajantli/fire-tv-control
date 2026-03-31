@@ -1,0 +1,145 @@
+#include <ESP8266WiFi.h>
+#include <WiFiClientSecureBearSSL.h>
+#include <PubSubClient.h>
+#include <time.h>
+
+// WiFi
+const char* ssid = "WIFI_NAME"; // Replace the wifi name
+const char* password = "WIFI_PASSWORD"; // // Replace the wifi password
+
+// AWS
+
+const char* awsEndpoint = "AWS IOT CORE END POINT"; //Replace with end point 
+const int awsPort = 8883;
+
+// Certificates 
+static const char AWS_ROOT_CA[] PROGMEM = R"EOF(
+-----BEGIN CERTIFICATE-----
+
+-----END CERTIFICATE-----
+)EOF";
+
+static const char AWS_CERT_CRT[] PROGMEM = R"KEY(
+-----BEGIN CERTIFICATE-----
+
+-----END CERTIFICATE-----
+)KEY";
+
+static const char AWS_PRIVATE_KEY[] PROGMEM = R"KEY(
+-----BEGIN RSA PRIVATE KEY-----
+
+-----END RSA PRIVATE KEY-----
+)KEY";
+
+// Pins
+#define TRIG D6
+#define ECHO D7
+
+BearSSL::WiFiClientSecure net;
+PubSubClient client(net);
+
+BearSSL::X509List cert(AWS_ROOT_CA);
+BearSSL::X509List client_crt(AWS_CERT_CRT);
+BearSSL::PrivateKey key(AWS_PRIVATE_KEY);
+
+// ===== TIME SYNC =====
+void syncTime() {
+  configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+
+  Serial.print("Syncing time");
+  time_t now = time(nullptr);
+
+  while (now < 1000000000) {
+    delay(500);
+    Serial.print(".");
+    now = time(nullptr);
+  }
+
+  Serial.println("\nTime synced!");
+}
+
+// ===== AWS CONNECT =====
+void connectAWS() {
+
+  net.setTrustAnchors(&cert);
+  net.setClientRSACert(&client_crt, &key);
+
+  client.setServer(awsEndpoint, awsPort);
+
+  while (!client.connected()) {
+    Serial.print("Connecting AWS...");
+    if (client.connect("ESP8266_Ultrasonic")) {
+      Serial.println("Connected!");
+    } else {
+      Serial.print("Failed: ");
+      Serial.println(client.state());
+      delay(3000);
+    }
+  }
+}
+
+// ===== DISTANCE =====
+long getDistance() {
+
+  digitalWrite(TRIG, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+
+  long duration = pulseIn(ECHO, HIGH);
+  long distance = duration * 0.034 / 2;
+
+  return distance;
+}
+
+// ===== SETUP =====
+void setup() {
+
+  Serial.begin(115200);
+
+  pinMode(TRIG, OUTPUT);
+  pinMode(ECHO, INPUT);
+
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\nWiFi Connected");
+
+  syncTime();
+  connectAWS();
+}
+
+// ===== LOOP =====
+void loop() {
+
+  if (!client.connected()) {
+    connectAWS();
+  }
+
+  client.loop();
+
+  long distance = getDistance();
+
+  Serial.print("Distance: ");
+  Serial.println(distance);
+
+  String payload;
+
+  if (distance < 100) {   // 1 meter
+    payload = "{\"action\":\"pause\"}";
+    Serial.println("Sending PAUSE");
+  } else {
+    payload = "{\"action\":\"resume\"}";
+    Serial.println("Sending RESUME");
+  }
+
+  client.publish("kids/command", payload.c_str());
+
+  delay(5000);
+}
