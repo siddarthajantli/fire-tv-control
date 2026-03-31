@@ -49,7 +49,7 @@ The ESP8266 measures distance using an ultrasonic sensor and publishes the data 
 3. ADB installed (Connect & run adb commands to control the fire-tv)    
 ## Network Configuration
 * Set up the static IP on the Fire TV, so that you won't be greeted with a new IP when the Fire TV reboots.    
-* Make certain that the laptop and Fire TV are connected to the same subnet. The laptop has an open port 5555 for connecting to the Fire TV.   
+* Ensure the laptop and the Amazon Fire TV are on the same subnet and that port 5555 is open on the laptop for establishing the connection.  
 * The laptop initiates connection to AWS IoT on port 8883. AWS uses the same connection to send messages    
 **Note:** This method does not necessitate port forwarding or VPN connection. A Raspberry Pi can also be used instead of a laptop.   
 ## Future Enhancements
