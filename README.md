@@ -38,7 +38,7 @@ The ESP8266 measures distance using an ultrasonic sensor and publishes the data 
 
 ## AWS Setup
 1. Create an IoT Thing with an appropriate access policy configured.  
-   * Download the certificates, which include the Root CA, client certificate, and private key.  
+   * Download the certificates, which include the Root CA, client certificate and private key.  
 2. Create an IoT rule that uses AWS Lambda as the endpoint to process and forward the JSON data.   
    * Role Query: SELECT * FROM 'kids/distance'  
 3. Set up a Lambda, with appropriate the policy to receive and send the data to IOT-Core thing. [**Note:** Python language is used to building lambda logic. File is app.py]    
