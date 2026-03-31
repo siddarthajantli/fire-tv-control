@@ -8,11 +8,12 @@ This project automatically:
 >Resumes when they move away  
 ## Architecture Diagram
 
-<img width="316" height="871" alt="image" src="https://github.com/user-attachments/assets/58f4a85b-f1cb-4bc3-b750-854984af4e5c" />
+<img width="316" height="871" alt="Screenshot 2026-03-29 233226" src="https://github.com/user-attachments/assets/6f5c8274-946d-4b8e-bf49-3896d71a3a80" />
+
 
 ## Circuit Diagram
-<img width="1280" height="1024" alt="ChatGPT Image Mar 30, 2026, 09_48_22 PM" src="https://github.com/user-attachments/assets/c91aa701-6ada-4ecd-8683-602fdebd5a08" />     
-
+<img width="1280" height="1024" alt="ChatGPT Image Mar 30, 2026, 09_48_22 PM" src="https://github.com/user-attachments/assets/7b1adaf3-7587-4489-b65d-13fed9d0b298" />
+   
 
 ## Workflow  
 The ESP8266 measures distance using an ultrasonic sensor and publishes the data to an AWS IoT topic (e.g., kids/distance, though the topic name can be customized). Once the data is published, an IoT Core rule processes it and triggers a Lambda function based on the configured logic. The Lambda function determines the appropriate action (Play or Pause) depending on the detected distance and publishes the result back to another IoT topic. A laptop, continuously subscribed to this topic, listens for any state changes and executes the corresponding ADB commands to control playback on the Amazon Fire TV.       
